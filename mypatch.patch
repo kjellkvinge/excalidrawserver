@@ -1,0 +1,67 @@
+diff --git a/src/data/index.ts b/src/data/index.ts
+index f9c3bec..5bb3d89 100644
+--- a/src/data/index.ts
++++ b/src/data/index.ts
+@@ -24,10 +24,10 @@ export { loadFromBlob } from "./blob";
+ export { saveAsJSON, loadFromJSON } from "./json";
+ export { saveToLocalStorage } from "./localStorage";
+ 
+-const BACKEND_GET = "https://json.excalidraw.com/api/v1/";
++const BACKEND_GET = "api/v1/";
+ 
+-const BACKEND_V2_POST = "https://json.excalidraw.com/api/v2/post/";
+-const BACKEND_V2_GET = "https://json.excalidraw.com/api/v2/";
++const BACKEND_V2_POST = "api/v2/post/";
++const BACKEND_V2_GET = "api/v2/";
+ 
+ export const SOCKET_SERVER = "https://excalidraw-socket.herokuapp.com";
+ 
+@@ -107,7 +107,7 @@ export const getCollaborationLinkData = (link: string) => {
+ 
+ export const generateCollaborationLink = async () => {
+   const id = await generateRandomID();
+-  const key = await generateEncryptionKey();
++    const key = "none";//await generateEncryptionKey();
+   return `${window.location.origin}${window.location.pathname}#room=${id},${key}`;
+ };
+ 
+@@ -184,7 +184,7 @@ export const exportToBackend = async (
+   const json = serializeAsJSON(elements, appState);
+   const encoded = new TextEncoder().encode(json);
+ 
+-  const key = await window.crypto.subtle.generateKey(
++/*  const key = await window.crypto.subtle.generateKey(
+     {
+       name: "AES-GCM",
+       length: 128,
+@@ -208,18 +208,18 @@ export const exportToBackend = async (
+   // We use jwk encoding to be able to extract just the base64 encoded key.
+   // We will hardcode the rest of the attributes when importing back the key.
+   const exportedKey = await window.crypto.subtle.exportKey("jwk", key);
+-
++*/
+   try {
+     const response = await fetch(BACKEND_V2_POST, {
+       method: "POST",
+-      body: encrypted,
++      body: encoded,
+     });
+     const json = await response.json();
+     if (json.id) {
+       const url = new URL(window.location.href);
+       // We need to store the key (and less importantly the id) as hash instead
+       // of queryParam in order to never send it to the server
+-      url.hash = `json=${json.id},${exportedKey.k!}`;
++      url.hash = `json=${json.id},none`;
+       const urlString = url.toString();
+ 
+       window.prompt(`🔒${t("alerts.uploadedSecurly")}`, urlString);
+@@ -248,7 +248,7 @@ export const importFromBackend = async (
+       return restore(elements, appState, { scrollToContent: true });
+     }
+     let data;
+-    if (privateKey) {
++    if (privateKey && privateKey != "none") {
+       const buffer = await response.arrayBuffer();
+       const key = await getImportedKey(privateKey, "decrypt");
+       const iv = new Uint8Array(12);
