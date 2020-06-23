@@ -19,4 +19,4 @@ GOOS=windows GOARCH=amd64 go build -o static.exe
 GOOS=darwin GOARCH=amd64 go build -o static_darwin
 
 #for arm
-env GOOS=linux GOARCH=arm GOARM=5 go build static_arm
+env GOOS=linux GOARCH=arm GOARM=5 go build -o static_arm
