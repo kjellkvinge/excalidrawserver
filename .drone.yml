@@ -1,0 +1,45 @@
+kind: pipeline
+type: docker
+name: default
+
+steps:
+  - name: excalidraw
+    image: node:lts-stretch
+    commands:
+      - git clone https://github.com/excalidraw/excalidraw.git
+      - cd excalidraw
+      - git checkout a679ef7
+      - git config --global user.email "drone@example.nope"
+      - git config --global user.name "Drone"
+      - git am ../mypatch.patch
+      - npm install
+      - REACT_APP_VERSION=$(git describe --tags --always) REACT_APP_HOST="/" npm run build:app:docker
+      - cd ..
+
+  - name: build
+    image: golang:1.14
+    commands:
+      - go run generator.go
+      - go build -o excalidrawserver-linux
+      - GOOS=windows GOARCH=amd64 go build -o excalidrawserver.exe
+
+      #for mac
+      - GOOS=darwin GOARCH=amd64 go build -o excalidrawserver_darwin
+
+      #for arm
+      - GOOS=linux GOARCH=arm GOARM=5 go build -o excalidrawserver_arm
+
+      - mkdir dist
+      - mv excalidrawserver* dist/
+
+
+  - name: publish
+    image: plugins/github-release
+    settings:
+      api_key:
+        from_secret: github_token
+      files: dist/*
+      checksum:
+        - md5
+    when:
+      event: tag
