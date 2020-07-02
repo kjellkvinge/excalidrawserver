@@ -8,12 +8,12 @@ steps:
     commands:
       - git clone https://github.com/excalidraw/excalidraw.git
       - cd excalidraw
-      - git checkout a679ef7
+      - git checkout cc52ea4
       - git config --global user.email "drone@example.nope"
       - git config --global user.name "Drone"
       - git am ../mypatch.patch
       - npm install
-      - REACT_APP_VERSION=$(git describe --tags --always) REACT_APP_HOST="/" npm run build:app:docker
+      - REACT_APP_VERSION=$(git describe --tags --always) REACT_APP_BACKEND_V2_GET_URL=/api/v2/ REACT_APP_BACKEND_V2_POST_URL=/api/v2/post/ npm run build:app:docker
       - cd ..
 
   - name: build
